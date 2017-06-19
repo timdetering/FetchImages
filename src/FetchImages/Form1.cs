@@ -73,19 +73,19 @@ namespace FetchImages
                     }
                 }
 
-                //Format the image URLs
+                //
+                //  Format the image URLs.
+                //
+                string baseUrl = GetBaseUrl(url);
                 for (var i = 0; i < imageList.Count; i++)
                 {
-                    string img = imageList[i];
-
-                    string baseUrl = GetBaseUrl(url);
-
-                    if (false == String.IsNullOrEmpty(baseUrl) && false == StartsWithHttp(img))
+                    string imageSrc = imageList[i];
+                    if (false == String.IsNullOrEmpty(baseUrl) && false == StartsWithHttp(imageSrc))
                     {
-                        img = baseUrl + "/" + img.TrimStart('/');
+                        imageSrc = baseUrl + "/" + imageSrc.TrimStart('/');
                     }
 
-                    imageList[i] = img;
+                    imageList[i] = imageSrc;
                 }
             }
 
@@ -173,18 +173,20 @@ namespace FetchImages
 
         private string GetBaseUrl(string url)
         {
-            int inx = url.IndexOf("://", StringComparison.Ordinal) + "://".Length;
+            const string schemeSeparator = "://";
+            int inx = url.IndexOf(schemeSeparator, StringComparison.Ordinal) + schemeSeparator.Length;
             int end = url.IndexOf('/', inx);
 
-            string baseUrl = string.Empty;
+            string baseUrl;
             if (end != -1)
             {
-                return url.Substring(0, end);
+                baseUrl= url.Substring(0, end);
             }
             else
             {
-                return string.Empty;
+                baseUrl= String.Empty;
             }
+            return baseUrl;
         }
 
         private void btnGetImages_Click(object sender, EventArgs e)
