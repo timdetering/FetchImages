@@ -16,11 +16,10 @@ namespace FetchImages
             InitializeComponent();
         }
 
-        private List<string> FetchImages(string url)
+        private IEnumerable<string> FetchImageUrls(string url)
         {
             Debug.Assert(false == String.IsNullOrEmpty(url));
 
-            var imageList = new List<string>();
 
             //
             //  Append 'http://' if necessary.
@@ -38,6 +37,7 @@ namespace FetchImages
                 url = responseUrl;
             }
 
+            var imageUrls = new List<string>();
             if (0 != htmlData.Length)
             {
                 int index = htmlData.IndexOf(ImageHtmlCode, StringComparison.OrdinalIgnoreCase);
@@ -58,7 +58,7 @@ namespace FetchImages
                         string loc = htmlData.Substring(start, end - start);
 
                         //Store line
-                        imageList.Add(loc);
+                        imageUrls.Add(loc);
                     }
 
                     //Move index to next image location
@@ -77,19 +77,19 @@ namespace FetchImages
                 //  Format the image URLs.
                 //
                 string baseUrl = GetBaseUrl(url);
-                for (var i = 0; i < imageList.Count; i++)
+                for (var i = 0; i < imageUrls.Count; i++)
                 {
-                    string imageSrc = imageList[i];
+                    string imageSrc = imageUrls[i];
                     if (false == String.IsNullOrEmpty(baseUrl) && false == StartsWithHttp(imageSrc))
                     {
                         imageSrc = baseUrl + "/" + imageSrc.TrimStart('/');
                     }
 
-                    imageList[i] = imageSrc;
+                    imageUrls[i] = imageSrc;
                 }
             }
 
-            return imageList;
+            return imageUrls;
         }
 
         //
@@ -197,10 +197,9 @@ namespace FetchImages
             this.Cursor = Cursors.WaitCursor;
 
             listImages.Items.Clear();
-
-            foreach (var image in FetchImages(txtURL.Text))
+            foreach (var imageUrl in FetchImageUrls(txtURL.Text))
             {
-                listImages.Items.Add(image);
+                listImages.Items.Add(imageUrl);
             }
 
             this.Cursor = Cursors.Default;
