@@ -40,10 +40,7 @@ namespace FetchImages
 
             if (0 != htmlData.Length)
             {
-                string imageHtmlCode = "<img";
-                string imageSrcCode = @"src=""";
-
-                int index = htmlData.IndexOf(imageHtmlCode, StringComparison.OrdinalIgnoreCase);
+                int index = htmlData.IndexOf(ImageHtmlCode, StringComparison.OrdinalIgnoreCase);
                 while (index != -1)
                 {
                     //Remove previous data
@@ -51,8 +48,8 @@ namespace FetchImages
 
                     //Find the location of the two quotes that mark the image's location
                     int brackedEnd = htmlData.IndexOf('>'); //make sure data will be inside img tag
-                    int start = htmlData.IndexOf(imageSrcCode, StringComparison.OrdinalIgnoreCase) +
-                                imageSrcCode.Length;
+                    int start = htmlData.IndexOf(ImageSrcCode, StringComparison.OrdinalIgnoreCase) +
+                                ImageSrcCode.Length;
                     int end = htmlData.IndexOf('"', start + 1);
 
                     //Extract the line
@@ -65,9 +62,9 @@ namespace FetchImages
                     }
 
                     //Move index to next image location
-                    if (imageHtmlCode.Length < htmlData.Length)
+                    if (ImageHtmlCode.Length < htmlData.Length)
                     {
-                        index = htmlData.IndexOf(imageHtmlCode, imageHtmlCode.Length,
+                        index = htmlData.IndexOf(ImageHtmlCode, ImageHtmlCode.Length,
                                                  StringComparison.OrdinalIgnoreCase);
                     }
                     else
@@ -217,5 +214,8 @@ namespace FetchImages
             return url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                    url.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
         }
+
+        private const string ImageHtmlCode = "<img";
+        private const string ImageSrcCode = @"src=""";
     }
 }
