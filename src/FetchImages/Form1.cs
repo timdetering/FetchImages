@@ -30,7 +30,7 @@ namespace FetchImages
                 url = "http://" + url;
             }
 
-            string responseUrl = string.Empty;
+            string responseUrl;
             string htmlData = Encoding.ASCII.GetString(DownloadData(url, out responseUrl));
 
             if (0 != responseUrl.Length)
@@ -155,20 +155,20 @@ namespace FetchImages
             return downloadedData;
         }
 
-        //http://www.vcskicks.com/image-from-url.php
+        //
+        //  http://www.vcskicks.com/image-from-url.php
+        //
         private Image ImageFromUrl(string url)
         {
             byte[] imageData = DownloadData(url);
-            Image img = null;
+            Image img;
 
-            try
+            //
+            //  TODO: Catch specific exceptions if creating the image fails.
+            //
+            using (var stream = new MemoryStream(imageData))
             {
-                MemoryStream stream = new MemoryStream(imageData);
                 img = Image.FromStream(stream);
-                stream.Close();
-            }
-            catch (Exception)
-            {
             }
 
             return img;
