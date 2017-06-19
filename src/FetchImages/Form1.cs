@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
+using System.IO;
+using System.Net;
 using System.Text;
 using System.Windows.Forms;
-using System.Net;
-using System.IO;
 
 namespace FetchImages
 {
@@ -17,25 +15,25 @@ namespace FetchImages
             InitializeComponent();
         }
 
-        public List<string> FetchImages(string Url)
+        private List<string> FetchImages(string url)
         {
-            List<string> imageList = new List<string>();
+            var imageList = new List<string>();
 
             //Append http:// if necessary
-            if (!Url.StartsWith("http://") && !Url.StartsWith("https://"))
+            if (!url.StartsWith("http://") && !url.StartsWith("https://"))
             {
-                Url = "http://" + Url;
+                url = "http://" + url;
             }
 
             string responseUrl = string.Empty;
-            string htmlData = ASCIIEncoding.ASCII.GetString(DownloadData(Url, out responseUrl));
+            string htmlData = ASCIIEncoding.ASCII.GetString(DownloadData(url, out responseUrl));
 
-            if (responseUrl != string.Empty)
+            if (0 != responseUrl.Length)
             {
-                Url = responseUrl;
+                url = responseUrl;
             }
 
-            if (htmlData != string.Empty)
+            if (0 != htmlData.Length)
             {
                 string imageHtmlCode = "<img";
                 string imageSrcCode = @"src=""";
@@ -72,15 +70,17 @@ namespace FetchImages
                 }
 
                 //Format the image URLs
-                for (int i = 0; i < imageList.Count; i++)
+                for (var i = 0; i < imageList.Count; i++)
                 {
                     string img = imageList[i];
 
-                    string baseUrl = GetBaseURL(Url);
+                    string baseUrl = GetBaseUrl(url);
 
                     if ((!img.StartsWith("http://") && !img.StartsWith("https://"))
                         && baseUrl != string.Empty)
+                    {
                         img = baseUrl + "/" + img.TrimStart('/');
+                    }
 
                     imageList[i] = img;
                 }
@@ -90,21 +90,21 @@ namespace FetchImages
         }
 
         //http://www.vcskicks.com/download_file_http.html
-        private byte[] DownloadData(string Url)
+        private byte[] DownloadData(string url)
         {
             string empty = string.Empty;
-            return DownloadData(Url, out empty);
+            return DownloadData(url, out empty);
         }
 
-        private byte[] DownloadData(string Url, out string responseUrl)
+        private byte[] DownloadData(string url, out string responseUrl)
         {
             byte[] downloadedData = new byte[0];
             try
             {
                 //Get a data stream from the url
-                WebRequest req = WebRequest.Create(Url);
-                WebResponse response = req.GetResponse();
-                Stream stream = response.GetResponseStream();
+                var req = WebRequest.Create(url);
+                var response = req.GetResponse();
+                var stream = response.GetResponseStream();
 
                 responseUrl = response.ResponseUri.ToString();
 
@@ -150,9 +150,9 @@ namespace FetchImages
         }
 
         //http://www.vcskicks.com/image-from-url.php
-        private Image ImageFromURL(string Url)
+        private Image ImageFromUrl(string url)
         {
-            byte[] imageData = DownloadData(Url);
+            byte[] imageData = DownloadData(url);
             Image img = null;
 
             try
@@ -168,15 +168,15 @@ namespace FetchImages
             return img;
         }
 
-        private string GetBaseURL(string Url)
+        private string GetBaseUrl(string url)
         {
-            int inx = Url.IndexOf("://") + "://".Length;
-            int end = Url.IndexOf('/', inx);
+            int inx = url.IndexOf("://") + "://".Length;
+            int end = url.IndexOf('/', inx);
 
             string baseUrl = string.Empty;
             if (end != -1)
             {
-                return Url.Substring(0, end);
+                return url.Substring(0, end);
             }
             else
             {
@@ -190,7 +190,7 @@ namespace FetchImages
 
             listImages.Items.Clear();
 
-            foreach (string image in FetchImages(txtURL.Text))
+            foreach (var image in FetchImages(txtURL.Text))
             {
                 listImages.Items.Add(image);
             }
@@ -202,7 +202,7 @@ namespace FetchImages
         {
             if (listImages.SelectedIndex != -1)
             {
-                picImage.Image = ImageFromURL(listImages.SelectedItem.ToString());
+                picImage.Image = ImageFromUrl(listImages.SelectedItem.ToString());
             }
         }
     }
