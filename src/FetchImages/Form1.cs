@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net;
@@ -17,16 +18,20 @@ namespace FetchImages
 
         private List<string> FetchImages(string url)
         {
+            Debug.Assert(false == String.IsNullOrEmpty(url));
+
             var imageList = new List<string>();
 
-            //Append http:// if necessary
-            if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+            //
+            //  Append 'http://' if necessary.
+            //
+            if (false == StartsWithHttp(url))
             {
                 url = "http://" + url;
             }
 
             string responseUrl = string.Empty;
-            string htmlData = ASCIIEncoding.ASCII.GetString(DownloadData(url, out responseUrl));
+            string htmlData = Encoding.ASCII.GetString(DownloadData(url, out responseUrl));
 
             if (0 != responseUrl.Length)
             {
@@ -38,7 +43,7 @@ namespace FetchImages
                 string imageHtmlCode = "<img";
                 string imageSrcCode = @"src=""";
 
-                int index = htmlData.IndexOf(imageHtmlCode);
+                int index = htmlData.IndexOf(imageHtmlCode, StringComparison.OrdinalIgnoreCase);
                 while (index != -1)
                 {
                     //Remove previous data
@@ -46,7 +51,8 @@ namespace FetchImages
 
                     //Find the location of the two quotes that mark the image's location
                     int brackedEnd = htmlData.IndexOf('>'); //make sure data will be inside img tag
-                    int start = htmlData.IndexOf(imageSrcCode) + imageSrcCode.Length;
+                    int start = htmlData.IndexOf(imageSrcCode, StringComparison.OrdinalIgnoreCase) +
+                                imageSrcCode.Length;
                     int end = htmlData.IndexOf('"', start + 1);
 
                     //Extract the line
@@ -61,7 +67,8 @@ namespace FetchImages
                     //Move index to next image location
                     if (imageHtmlCode.Length < htmlData.Length)
                     {
-                        index = htmlData.IndexOf(imageHtmlCode, imageHtmlCode.Length);
+                        index = htmlData.IndexOf(imageHtmlCode, imageHtmlCode.Length,
+                                                 StringComparison.OrdinalIgnoreCase);
                     }
                     else
                     {
@@ -76,8 +83,7 @@ namespace FetchImages
 
                     string baseUrl = GetBaseUrl(url);
 
-                    if ((!img.StartsWith("http://") && !img.StartsWith("https://"))
-                        && baseUrl != string.Empty)
+                    if (false == String.IsNullOrEmpty(baseUrl) && false == StartsWithHttp(img))
                     {
                         img = baseUrl + "/" + img.TrimStart('/');
                     }
@@ -170,7 +176,7 @@ namespace FetchImages
 
         private string GetBaseUrl(string url)
         {
-            int inx = url.IndexOf("://") + "://".Length;
+            int inx = url.IndexOf("://", StringComparison.Ordinal) + "://".Length;
             int end = url.IndexOf('/', inx);
 
             string baseUrl = string.Empty;
@@ -204,6 +210,12 @@ namespace FetchImages
             {
                 picImage.Image = ImageFromUrl(listImages.SelectedItem.ToString());
             }
+        }
+
+        private static bool StartsWithHttp(string url)
+        {
+            return url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                   url.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
