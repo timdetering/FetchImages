@@ -92,61 +92,64 @@ namespace FetchImages
             return imageList;
         }
 
-        //http://www.vcskicks.com/download_file_http.html
-        private byte[] DownloadData(string url)
+        //
+        //  http://www.vcskicks.com/download_file_http.html
+        //
+        private static byte[] DownloadData(string url)
         {
-            string empty = string.Empty;
-            return DownloadData(url, out empty);
+            string responseUrl;
+            return DownloadData(url, out responseUrl);
         }
 
-        private byte[] DownloadData(string url, out string responseUrl)
+        private static byte[] DownloadData(string url, out string responseUrl)
         {
-            byte[] downloadedData = new byte[0];
-            try
+            byte[] downloadedData;
+
+            //
+            //  Get a data stream from the URL.
+            //
+            var req = WebRequest.Create(url);
+            using (var response = req.GetResponse())
             {
-                //Get a data stream from the url
-                var req = WebRequest.Create(url);
-                var response = req.GetResponse();
-                var stream = response.GetResponseStream();
-
                 responseUrl = response.ResponseUri.ToString();
-
-                //Download in chuncks
-                byte[] buffer = new byte[1024];
-
-                //Get Total Size
-                int dataLength = (int)response.ContentLength;
-
-                //Download to memory
-                //Note: adjust the streams here to download directly to the hard drive
-                MemoryStream memStream = new MemoryStream();
-                while (true)
+                using (var stream = response.GetResponseStream())
                 {
-                    //Try to read the data
-                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                    Debug.Assert(null != stream);
 
-                    if (bytesRead == 0)
+                    //
+                    //  Download in chuncks.
+                    //
+                    byte[] buffer = new byte[1024];
+
+                    //
+                    //  Download to memory
+                    //  NOTE: Adjust the streams here to download directly to the hard drive.
+                    //
+                    using (var memStream = new MemoryStream())
                     {
-                        break;
-                    }
-                    else
-                    {
-                        //Write the downloaded data
-                        memStream.Write(buffer, 0, bytesRead);
+                        while (true)
+                        {
+                            //
+                            //  Try to read the data.
+                            //
+                            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                            if (bytesRead == 0)
+                            {
+                                break;
+                            }
+
+                            //
+                            //  Write the downloaded data.
+                            //
+                            memStream.Write(buffer, 0, bytesRead);
+                        }
+
+                        //
+                        //  Convert the downloaded stream to a byte array.
+                        //
+                        downloadedData = memStream.ToArray();
                     }
                 }
-
-                //Convert the downloaded stream to a byte array
-                downloadedData = memStream.ToArray();
-
-                //Clean up
-                stream.Close();
-                memStream.Close();
-            }
-            catch (Exception)
-            {
-                responseUrl = string.Empty;
-                return new byte[0];
             }
 
             return downloadedData;
